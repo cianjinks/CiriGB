@@ -3,6 +3,7 @@
 #include <iostream>
 #include <functional>
 #include <vector>
+#include <stdint.h>
 
 #include "Log/Log.h"
 

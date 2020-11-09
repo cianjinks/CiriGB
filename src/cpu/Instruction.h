@@ -1,19 +1,21 @@
 #pragma once
-
 #include "Log/Log.h"
+#include "Register.h"
+#include "Memory/MemoryUnit.h"
 
 namespace Ciri
 {
-
 	struct CPUInstruction
 	{
-		std::function<void()> func = nullptr;
-		const char* name;
-		uint16_t opcode;
-		uint16_t cycles;
+		std::function<void(RegisterFile&, MemoryUnit&, uint16_t)> func = nullptr;
+		const char* name = "";
+		uint8_t opcode = 0;
+		uint16_t cycles = 0;
+		uint16_t argsLength = 0;
 
-		CPUInstruction(const char* name, uint16_t opcode, uint16_t cycles, std::function<void()>& func) : name(name), opcode(opcode), cycles(cycles), func(func) {}
-		CPUInstruction(const CPUInstruction&) {}
+		CPUInstruction() {}
+		CPUInstruction(const char* name, uint8_t opcode, uint16_t cycles, uint16_t argsLength, std::function<void(RegisterFile&, MemoryUnit&, uint16_t)> func) 
+			: name(name), opcode(opcode), cycles(cycles), argsLength(argsLength), func(func) {}
 	};
 
 	class InstructionSet
@@ -25,7 +27,7 @@ namespace Ciri
 		InstructionSet() : m_Instructions(0x100) {}
 
 		void RegisterInstruction(CPUInstruction instruction);
-		void RunInstruction(uint16_t opcode);
+		void RunInstruction(uint8_t opcode, RegisterFile& rf, MemoryUnit& mu, uint16_t immediate);
 		
 	};
 }

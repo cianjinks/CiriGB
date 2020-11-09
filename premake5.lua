@@ -27,8 +27,8 @@ project "Ciri"
 	cppdialect "C++17"
 	staticruntime "on"
 
-	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("../bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 	
 	pchheader "ciripch.h"
 	pchsource "src/ciripch.cpp"

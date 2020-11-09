@@ -15,10 +15,10 @@ namespace Ciri
 		}
 	}
 
-	void InstructionSet::RunInstruction(uint16_t opcode)
+	void InstructionSet::RunInstruction(uint8_t opcode, RegisterFile& rf, MemoryUnit& mu, uint16_t immediate)
 	{
 		CI_ASSERT(opcode <= 0xFF && opcode >= 0 && m_Instructions[opcode].func, "Invalid CPU Instruction Opcode Executed: {1:x}", opcode);
 
-		m_Instructions[opcode].func();
+		m_Instructions[opcode].func(rf, mu, immediate);
 	}
 }
