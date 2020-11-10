@@ -9,6 +9,7 @@ namespace Ciri
 	{
 	private:
 		InstructionSet m_InstructionSet;
+		InstructionSet m_CBInstructionSet;
 		RegisterFile m_Registers;
 		MemoryUnit m_MemoryUnit;
 
