@@ -15,6 +15,7 @@ namespace Ciri
 			// Internal Ram
 			m_Ram.setByte((uint16_t)(address - 0xA000), value);
 		}
+		CI_ASSERT(false, "Memory Access Address out of range");
 	}
 
 	uint8_t MemoryUnit::getByte(uint32_t address)
@@ -29,5 +30,6 @@ namespace Ciri
 			// Internal Ram
 			return m_Ram.getByte((uint16_t)(address - 0xA000));
 		}
+		CI_ASSERT(false, "Memory Access Address out of range");
 	}
 }
