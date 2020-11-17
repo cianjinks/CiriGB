@@ -12,14 +12,46 @@ namespace Ciri
 			return (uint16_t)H | ((uint16_t)L) << 8;
 		}
 
+		void setHL(uint16_t hl)
+		{
+			H = (uint8_t)(hl & 0x0011);
+			L = (uint8_t)((hl & 0x1100) >> 8);
+		}
+
+		uint16_t decrementHL()
+		{
+			uint16_t hl = getHL();
+			setHL(getHL() - 1);
+			return hl;
+		}
+
+		uint16_t incrementHL()
+		{
+			uint16_t hl = getHL();
+			setHL(getHL() + 1);
+			return hl;
+		}
+
 		uint16_t getBC()
 		{
 			return (uint16_t)B | ((uint16_t)C) << 8;
 		}
 
+		void setBC(uint16_t bc)
+		{
+			B = (uint8_t)(bc & 0x0011);
+			C = (uint8_t)((bc & 0x1100) >> 8);
+		}
+
 		uint16_t getDE()
 		{
 			return (uint16_t)D | ((uint16_t)E) << 8;
+		}
+
+		void setDE(uint16_t de)
+		{
+			D = (uint8_t)(de & 0x0011);
+			E = (uint8_t)((de & 0x1100) >> 8);
 		}
 	};
 }
