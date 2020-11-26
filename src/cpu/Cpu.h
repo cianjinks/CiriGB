@@ -3,7 +3,7 @@
 #include "Memory/MemoryUnit.h"
 #include "Instruction.h"
 
-#define CI_TO16(x, y) (uint16_t)x | ((uint16_t)y) << 8
+#define CI_TO16(x, y) (uint16_t)x | (((uint16_t)y) << 8)
 
 namespace Ciri
 {

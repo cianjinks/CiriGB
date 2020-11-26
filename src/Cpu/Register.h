@@ -53,5 +53,16 @@ namespace Ciri
 			D = (uint8_t)(de & 0x0011);
 			E = (uint8_t)((de & 0x1100) >> 8);
 		}
+
+		uint16_t getAF()
+		{
+			return (uint16_t)A | ((uint16_t)F) << 8;
+		}
+
+		void setAF(uint16_t af)
+		{
+			A = (uint8_t)(af & 0x0011);
+			F = (uint8_t)((af & 0x1100) >> 8);
+		}
 	};
 }
