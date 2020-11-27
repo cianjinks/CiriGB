@@ -14,8 +14,8 @@ namespace Ciri
 
 		void setHL(uint16_t hl)
 		{
-			H = (uint8_t)(hl & 0x0011);
-			L = (uint8_t)((hl & 0x1100) >> 8);
+			H = (uint8_t)(hl & 0x00FF);
+			L = (uint8_t)((hl & 0xFF00) >> 8);
 		}
 
 		uint16_t decrementHL()
@@ -39,8 +39,8 @@ namespace Ciri
 
 		void setBC(uint16_t bc)
 		{
-			B = (uint8_t)(bc & 0x0011);
-			C = (uint8_t)((bc & 0x1100) >> 8);
+			B = (uint8_t)(bc & 0x00FF);
+			C = (uint8_t)((bc & 0xFF00) >> 8);
 		}
 
 		uint16_t getDE()
@@ -50,8 +50,8 @@ namespace Ciri
 
 		void setDE(uint16_t de)
 		{
-			D = (uint8_t)(de & 0x0011);
-			E = (uint8_t)((de & 0x1100) >> 8);
+			D = (uint8_t)(de & 0x00FF);
+			E = (uint8_t)((de & 0xFF00) >> 8);
 		}
 
 		uint16_t getAF()
@@ -61,8 +61,53 @@ namespace Ciri
 
 		void setAF(uint16_t af)
 		{
-			A = (uint8_t)(af & 0x0011);
-			F = (uint8_t)((af & 0x1100) >> 8);
+			A = (uint8_t)(af & 0x00FF);
+			F = (uint8_t)((af & 0xFF00) >> 8);
+		}
+
+		// Flags
+		bool getZFlag()
+		{
+			return ((F & 0x80) >> 7) == 1;
+		}
+
+		void setZFlag(bool value)
+		{
+			if (value) { F = F | ((uint8_t)0x01 << 7); }
+			else { F = F & ~((uint8_t)0x1 << 7); }
+		}
+
+		bool getNFlag()
+		{
+			return ((F & 0x40) >> 6) == 1;
+		}
+
+		void setNFlag(bool value)
+		{
+			if (value) { F = F | ((uint8_t)0x01 << 6); }
+			else { F = F & ~((uint8_t)0x1 << 6); }
+		}
+
+		bool getHFlag()
+		{
+			return ((F & 0x20) >> 5) == 1;
+		}
+
+		void setHFlag(bool value)
+		{
+			if (value) { F = F | ((uint8_t)0x01 << 5); }
+			else { F = F & ~((uint8_t)0x1 << 5); }
+		}
+
+		bool getCFlag()
+		{
+			return ((F & 0x10) >> 4) == 1;
+		}
+
+		void setCFlag(bool value)
+		{
+			if (value) { F = F | ((uint8_t)0x01 << 4); }
+			else { F = F & ~((uint8_t)0x1 << 4); }
 		}
 	};
 }

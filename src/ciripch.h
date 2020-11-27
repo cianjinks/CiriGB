@@ -4,7 +4,10 @@
 #include <functional>
 #include <vector>
 #include <stdint.h>
+#include <limits.h> 
+#include <assert.h>
 
+#include "Util/BitUtils.h"
 #include "Log/Log.h"
 
 #ifdef CI_DEBUG

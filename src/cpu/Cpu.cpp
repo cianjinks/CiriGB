@@ -132,7 +132,6 @@ namespace Ciri
         m_InstructionSet.RegisterInstruction(CPUInstruction("PUSH DE", 0xd5, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.SP = rf.SP - 2; mu.setByte(rf.SP, rf.getDE()); }));//(r, m, a)->push(r, m, r.getDE()));
         m_InstructionSet.RegisterInstruction(CPUInstruction("PUSH HL", 0xe5, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.SP = rf.SP - 2; mu.setByte(rf.SP, rf.getHL()); }));//(r, m, a)->push(r, m, r.getHL()));
 
-        // TODO: Flags are affected here apparently
         m_InstructionSet.RegisterInstruction(CPUInstruction("POP BC", 0xc1, 12, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.setBC(mu.getByte(rf.SP)); rf.SP = rf.SP + 2; }));//(r, m, a)->r.setBC(pop(r, m)));
         m_InstructionSet.RegisterInstruction(CPUInstruction("POP DE", 0xd1, 12, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.setDE(mu.getByte(rf.SP)); rf.SP = rf.SP + 2; }));//(r, m, a)->r.setDE(pop(r, m)));
         m_InstructionSet.RegisterInstruction(CPUInstruction("POP AF", 0xf1, 12, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.setAF(mu.getByte(rf.SP)); rf.SP = rf.SP + 2; }));//(r, m, a)->r.setAF(pop(r, m)));
@@ -210,6 +209,7 @@ namespace Ciri
         m_InstructionSet.RegisterInstruction(CPUInstruction("XOR A, #", 0xee, 8, 1, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.A = rf.A ^ immediate[0]; }));//(r, m, a)->r.setA(xor (r.getFlags(), r.getA(), a[0])));
 
         // TODO
+        // CP Functions just set flags which I haven't implemented yet
         m_InstructionSet.RegisterInstruction(CPUInstruction("CP A, A", 0xbf, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->subBytes(r.getFlags(), r.getA(), r.getA()));
         m_InstructionSet.RegisterInstruction(CPUInstruction("CP A, B", 0xb8, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->subBytes(r.getFlags(), r.getA(), r.getB()));
         m_InstructionSet.RegisterInstruction(CPUInstruction("CP A, C", 0xb9, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->subBytes(r.getFlags(), r.getA(), r.getC()));
@@ -302,112 +302,113 @@ namespace Ciri
         m_InstructionSet.RegisterInstruction(CPUInstruction("DI", 0xf3, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a) -> {/* TODO */});
         m_InstructionSet.RegisterInstruction(CPUInstruction("EI", 0xfb, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a) -> {/* TODO */});
 
-        m_InstructionSet.RegisterInstruction(CPUInstruction("RLCA", 0x07, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(rotateLeft(r.getFlags(), r.getA())));
-        m_InstructionSet.RegisterInstruction(CPUInstruction("RLA", 0x17, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(rotateLeftThroughCarry(r.getFlags(), r.getA())));
+        m_InstructionSet.RegisterInstruction(CPUInstruction("RLCA", 0x07, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.A = rotl8(rf.A, 1); }));
+        m_InstructionSet.RegisterInstruction(CPUInstruction("RLA", 0x17, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.A = rotl8(rf.A, 1); }));
 
-        m_InstructionSet.RegisterInstruction(CPUInstruction("RRCA", 0x0f, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(rotateRight(r.getFlags(), r.getA())));
-        m_InstructionSet.RegisterInstruction(CPUInstruction("RRA", 0x1f, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(rotateRightThroughCarry(r.getFlags(), r.getA())));
+        m_InstructionSet.RegisterInstruction(CPUInstruction("RRCA", 0x0f, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.A = rotr8(rf.A, 1); }));
+        m_InstructionSet.RegisterInstruction(CPUInstruction("RRA", 0x1f, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.A = rotr8(rf.A, 1); }));
 
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC A", 0x07, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(rotateLeft(r.getFlags(), r.getA())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC B", 0x00, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setB(rotateLeft(r.getFlags(), r.getB())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC C", 0x01, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setC(rotateLeft(r.getFlags(), r.getC())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC D", 0x02, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setD(rotateLeft(r.getFlags(), r.getD())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC E", 0x03, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setE(rotateLeft(r.getFlags(), r.getE())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC H", 0x04, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setH(rotateLeft(r.getFlags(), r.getH())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC L", 0x05, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setL(rotateLeft(r.getFlags(), r.getL())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC (HL)", 0x06, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->m.setByte(r.getHL(), rotateLeft(r.getFlags(), m.getByte(r.getHL()))));
+        // TODO: Actually rotate through carry
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC A", 0x07, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.A = rotl8(rf.A, 1); }));//(r, m, a)->r.setA(rotateLeft(r.getFlags(), r.getA())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC B", 0x00, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.B = rotl8(rf.B, 1); }));//(r, m, a)->r.setB(rotateLeft(r.getFlags(), r.getB())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC C", 0x01, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.C = rotl8(rf.C, 1); }));//(r, m, a)->r.setC(rotateLeft(r.getFlags(), r.getC())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC D", 0x02, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.D = rotl8(rf.D, 1); }));//(r, m, a)->r.setD(rotateLeft(r.getFlags(), r.getD())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC E", 0x03, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.E = rotl8(rf.E, 1); }));//(r, m, a)->r.setE(rotateLeft(r.getFlags(), r.getE())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC H", 0x04, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.H = rotl8(rf.H, 1); }));//(r, m, a)->r.setH(rotateLeft(r.getFlags(), r.getH())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC L", 0x05, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.L = rotl8(rf.L, 1); }));//(r, m, a)->r.setL(rotateLeft(r.getFlags(), r.getL())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RLC (HL)", 0x06, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { mu.setByte(rf.getHL(), rotl8(mu.getByte(rf.getHL()), 1)); }));//(r, m, a)->m.setByte(r.getHL(), rotateLeft(r.getFlags(), m.getByte(r.getHL()))));
           
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL A", 0x17, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(rotateLeftThroughCarry(r.getFlags(), r.getA())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL B", 0x10, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setB(rotateLeftThroughCarry(r.getFlags(), r.getB())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL C", 0x11, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setC(rotateLeftThroughCarry(r.getFlags(), r.getC())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL D", 0x12, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setD(rotateLeftThroughCarry(r.getFlags(), r.getD())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL E", 0x13, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setE(rotateLeftThroughCarry(r.getFlags(), r.getE())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL H", 0x14, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setH(rotateLeftThroughCarry(r.getFlags(), r.getH())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL L", 0x15, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setL(rotateLeftThroughCarry(r.getFlags(), r.getL())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL (HL)", 0x16, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->m.setByte(r.getHL(), rotateLeftThroughCarry(r.getFlags(), m.getByte(r.getHL()))));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL A", 0x17, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.A = rotl8(rf.A, 1); }));//(r, m, a)->r.setA(rotateLeftThroughCarry(r.getFlags(), r.getA())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL B", 0x10, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.B = rotl8(rf.B, 1); }));//(r, m, a)->r.setB(rotateLeftThroughCarry(r.getFlags(), r.getB())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL C", 0x11, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.C = rotl8(rf.C, 1); }));//(r, m, a)->r.setC(rotateLeftThroughCarry(r.getFlags(), r.getC())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL D", 0x12, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.D = rotl8(rf.D, 1); }));//(r, m, a)->r.setD(rotateLeftThroughCarry(r.getFlags(), r.getD())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL E", 0x13, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.E = rotl8(rf.E, 1); }));//(r, m, a)->r.setE(rotateLeftThroughCarry(r.getFlags(), r.getE())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL H", 0x14, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.H = rotl8(rf.H, 1); }));//(r, m, a)->r.setH(rotateLeftThroughCarry(r.getFlags(), r.getH())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL L", 0x15, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.L = rotl8(rf.L, 1); }));//(r, m, a)->r.setL(rotateLeftThroughCarry(r.getFlags(), r.getL())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RL (HL)", 0x16, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { mu.setByte(rf.getHL(), rotl8(mu.getByte(rf.getHL()), 1)); }));//(r, m, a)->m.setByte(r.getHL(), rotateLeftThroughCarry(r.getFlags(), m.getByte(r.getHL()))));
           
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC A", 0x0f, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(rotateRight(r.getFlags(), r.getA())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC B", 0x08, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setB(rotateRight(r.getFlags(), r.getB())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC C", 0x09, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setC(rotateRight(r.getFlags(), r.getC())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC D", 0x0a, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setD(rotateRight(r.getFlags(), r.getD())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC E", 0x0b, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setE(rotateRight(r.getFlags(), r.getE())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC H", 0x0c, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setH(rotateRight(r.getFlags(), r.getH())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC L", 0x0d, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setL(rotateRight(r.getFlags(), r.getL())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC (HL)", 0x0e, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->m.setByte(r.getHL(), rotateRight(r.getFlags(), m.getByte(r.getHL()))));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC A", 0x0f, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.A = rotr8(rf.A, 1); }));//(r, m, a)->r.setA(rotateRight(r.getFlags(), r.getA())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC B", 0x08, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.B = rotr8(rf.B, 1); }));//(r, m, a)->r.setB(rotateRight(r.getFlags(), r.getB())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC C", 0x09, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.C = rotr8(rf.C, 1); }));//(r, m, a)->r.setC(rotateRight(r.getFlags(), r.getC())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC D", 0x0a, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.D = rotr8(rf.D, 1); }));//(r, m, a)->r.setD(rotateRight(r.getFlags(), r.getD())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC E", 0x0b, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.E = rotr8(rf.E, 1); }));//(r, m, a)->r.setE(rotateRight(r.getFlags(), r.getE())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC H", 0x0c, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.H = rotr8(rf.H, 1); }));//(r, m, a)->r.setH(rotateRight(r.getFlags(), r.getH())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC L", 0x0d, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.L = rotr8(rf.L, 1); }));//(r, m, a)->r.setL(rotateRight(r.getFlags(), r.getL())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RRC (HL)", 0x0e, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { mu.setByte(rf.getHL(), rotr8(mu.getByte(rf.getHL()), 1)); }));//(r, m, a)->m.setByte(r.getHL(), rotateRight(r.getFlags(), m.getByte(r.getHL()))));
           
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR A", 0x1f, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(rotateRightThroughCarry(r.getFlags(), r.getA())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR B", 0x18, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setB(rotateRightThroughCarry(r.getFlags(), r.getB())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR C", 0x19, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setC(rotateRightThroughCarry(r.getFlags(), r.getC())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR D", 0x1a, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setD(rotateRightThroughCarry(r.getFlags(), r.getD())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR E", 0x1b, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setE(rotateRightThroughCarry(r.getFlags(), r.getE())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR H", 0x1c, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setH(rotateRightThroughCarry(r.getFlags(), r.getH())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR L", 0x1d, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setL(rotateRightThroughCarry(r.getFlags(), r.getL())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR (HL)", 0x1e, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->m.setByte(r.getHL(), rotateRightThroughCarry(r.getFlags(), m.getByte(r.getHL()))));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR A", 0x1f, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.A = rotr8(rf.A, 1); }));//(r, m, a)->r.setA(rotateRightThroughCarry(r.getFlags(), r.getA())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR B", 0x18, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.B = rotr8(rf.B, 1); }));//(r, m, a)->r.setB(rotateRightThroughCarry(r.getFlags(), r.getB())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR C", 0x19, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.C = rotr8(rf.C, 1); }));//(r, m, a)->r.setC(rotateRightThroughCarry(r.getFlags(), r.getC())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR D", 0x1a, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.D = rotr8(rf.D, 1); }));//(r, m, a)->r.setD(rotateRightThroughCarry(r.getFlags(), r.getD())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR E", 0x1b, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.E = rotr8(rf.E, 1); }));//(r, m, a)->r.setE(rotateRightThroughCarry(r.getFlags(), r.getE())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR H", 0x1c, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.H = rotr8(rf.H, 1); }));//(r, m, a)->r.setH(rotateRightThroughCarry(r.getFlags(), r.getH())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR L", 0x1d, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.L = rotr8(rf.L, 1); }));//(r, m, a)->r.setL(rotateRightThroughCarry(r.getFlags(), r.getL())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("RR (HL)", 0x1e, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { mu.setByte(rf.getHL(), rotr8(mu.getByte(rf.getHL()), 1)); }));//(r, m, a)->m.setByte(r.getHL(), rotateRightThroughCarry(r.getFlags(), m.getByte(r.getHL()))));
           
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA A", 0x27, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(shiftLeft(r.getFlags(), r.getA())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA B", 0x20, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setB(shiftLeft(r.getFlags(), r.getB())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA C", 0x21, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setC(shiftLeft(r.getFlags(), r.getC())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA D", 0x22, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setD(shiftLeft(r.getFlags(), r.getD())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA E", 0x23, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setE(shiftLeft(r.getFlags(), r.getE())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA H", 0x24, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setH(shiftLeft(r.getFlags(), r.getH())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA L", 0x25, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setL(shiftLeft(r.getFlags(), r.getL())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA (HL)", 0x26, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->m.setByte(r.getHL(), shiftLeft(r.getFlags(), m.getByte(r.getHL()))));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA A", 0x27, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.A = rf.A << 1; }));//(r, m, a)->r.setA(shiftLeft(r.getFlags(), r.getA())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA B", 0x20, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.B = rf.B << 1; }));//(r, m, a)->r.setB(shiftLeft(r.getFlags(), r.getB())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA C", 0x21, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.C = rf.C << 1; }));//(r, m, a)->r.setC(shiftLeft(r.getFlags(), r.getC())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA D", 0x22, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.D = rf.D << 1; }));//(r, m, a)->r.setD(shiftLeft(r.getFlags(), r.getD())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA E", 0x23, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.E = rf.E << 1; }));//(r, m, a)->r.setE(shiftLeft(r.getFlags(), r.getE())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA H", 0x24, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.H = rf.H << 1; }));//(r, m, a)->r.setH(shiftLeft(r.getFlags(), r.getH())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA L", 0x25, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.L = rf.L << 1; }));//(r, m, a)->r.setL(shiftLeft(r.getFlags(), r.getL())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SLA (HL)", 0x26, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { mu.setByte(rf.getHL(), mu.getByte(rf.getHL()) << 1); }));//(r, m, a)->m.setByte(r.getHL(), shiftLeft(r.getFlags(), m.getByte(r.getHL()))));
           
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA A", 0x2f, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(shiftRightArtithmetic(r.getFlags(), r.getA())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA B", 0x28, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setB(shiftRightArtithmetic(r.getFlags(), r.getB())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA C", 0x29, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setC(shiftRightArtithmetic(r.getFlags(), r.getC())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA D", 0x2a, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setD(shiftRightArtithmetic(r.getFlags(), r.getD())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA E", 0x2b, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setE(shiftRightArtithmetic(r.getFlags(), r.getE())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA H", 0x2c, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setH(shiftRightArtithmetic(r.getFlags(), r.getH())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA L", 0x2d, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setL(shiftRightArtithmetic(r.getFlags(), r.getL())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA (HL)", 0x2e, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->m.setByte(r.getHL(), shiftRightArtithmetic(r.getFlags(), m.getByte(r.getHL()))));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA A", 0x2f, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.A = sra8(rf.A); }));//(r, m, a)->r.setA(shiftRightArtithmetic(r.getFlags(), r.getA())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA B", 0x28, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.B = sra8(rf.B); }));//(r, m, a)->r.setB(shiftRightArtithmetic(r.getFlags(), r.getB())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA C", 0x29, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.C = sra8(rf.C); }));//(r, m, a)->r.setC(shiftRightArtithmetic(r.getFlags(), r.getC())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA D", 0x2a, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.D = sra8(rf.D); }));//(r, m, a)->r.setD(shiftRightArtithmetic(r.getFlags(), r.getD())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA E", 0x2b, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.E = sra8(rf.E); }));//(r, m, a)->r.setE(shiftRightArtithmetic(r.getFlags(), r.getE())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA H", 0x2c, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.H = sra8(rf.H); }));//(r, m, a)->r.setH(shiftRightArtithmetic(r.getFlags(), r.getH())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA L", 0x2d, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.L = sra8(rf.L); }));//(r, m, a)->r.setL(shiftRightArtithmetic(r.getFlags(), r.getL())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRA (HL)", 0x2e, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { mu.setByte(rf.getHL(), sra8(mu.getByte(rf.getHL()))); }));//(r, m, a)->m.setByte(r.getHL(), shiftRightArtithmetic(r.getFlags(), m.getByte(r.getHL()))));
           
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL A", 0x3f, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(shiftRightLogical(r.getFlags(), r.getA())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL B", 0x38, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setB(shiftRightLogical(r.getFlags(), r.getB())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL C", 0x39, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setC(shiftRightLogical(r.getFlags(), r.getC())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL D", 0x3a, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setD(shiftRightLogical(r.getFlags(), r.getD())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL E", 0x3b, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setE(shiftRightLogical(r.getFlags(), r.getE())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL H", 0x3c, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setH(shiftRightLogical(r.getFlags(), r.getH())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL L", 0x3d, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setL(shiftRightLogical(r.getFlags(), r.getL())));
-        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL (HL)", 0x3e, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->m.setByte(r.getHL(), shiftRightLogical(r.getFlags(), m.getByte(r.getHL()))));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL A", 0x3f, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.A = rf.A >> 1; }));//(r, m, a)->r.setA(shiftRightLogical(r.getFlags(), r.getA())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL B", 0x38, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.B = rf.B >> 1; }));//(r, m, a)->r.setB(shiftRightLogical(r.getFlags(), r.getB())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL C", 0x39, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.C = rf.C >> 1; }));//(r, m, a)->r.setC(shiftRightLogical(r.getFlags(), r.getC())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL D", 0x3a, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.D = rf.D >> 1; }));//(r, m, a)->r.setD(shiftRightLogical(r.getFlags(), r.getD())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL E", 0x3b, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.E = rf.E >> 1; }));//(r, m, a)->r.setE(shiftRightLogical(r.getFlags(), r.getE())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL H", 0x3c, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.H = rf.H >> 1; }));//(r, m, a)->r.setH(shiftRightLogical(r.getFlags(), r.getH())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL L", 0x3d, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.L = rf.L >> 1; }));//(r, m, a)->r.setL(shiftRightLogical(r.getFlags(), r.getL())));
+        m_CBInstructionSet.RegisterInstruction(CPUInstruction("SRL (HL)", 0x3e, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { mu.setByte(rf.getHL(), mu.getByte(rf.getHL()) >> 1); }));//(r, m, a)->m.setByte(r.getHL(), shiftRightLogical(r.getFlags(), m.getByte(r.getHL()))));
 
         for (int i = 0; i < 8; i++) {
             int bit = i;
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", A")).c_str(), 0x47 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getA(), bit));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", B")).c_str(), 0x40 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getB(), bit));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", C")).c_str(), 0x41 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getC(), bit));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", D")).c_str(), 0x42 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getD(), bit));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", E")).c_str(), 0x43 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getE(), bit));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", H")).c_str(), 0x44 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getH(), bit));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", L")).c_str(), 0x45 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getL(), bit));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", (HL)")).c_str(), 0x46 + 0x08 * bit, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), m.getByte(r.getHL()), bit));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", A")).c_str(), 0xc7 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getA(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", B")).c_str(), 0xc0 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getB(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", C")).c_str(), 0xc1 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getC(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", D")).c_str(), 0xc2 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getD(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", E")).c_str(), 0xc3 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getE(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", H")).c_str(), 0xc4 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getH(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", L")).c_str(), 0xc5 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getL(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", (HL)")).c_str(), 0xc6 + 0x08 * bit, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->m.setByte(r.getHL(), setBit(m.getByte(r.getHL()), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", A")).c_str(), 0x87 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getA(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", B")).c_str(), 0x80 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getB(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", C")).c_str(), 0x81 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getC(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", D")).c_str(), 0x82 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getD(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", E")).c_str(), 0x83 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getE(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", H")).c_str(), 0x84 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getH(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", L")).c_str(), 0x85 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getL(), bit)));
-            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", (HL)")).c_str(), 0x86 + 0x08 * bit, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->m.setByte(r.getHL(), clearBit(m.getByte(r.getHL()), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", A")), 0x47 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getA(), bit));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", B")), 0x40 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getB(), bit));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", C")), 0x41 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getC(), bit));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", D")), 0x42 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getD(), bit));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", E")), 0x43 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getE(), bit));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", H")), 0x44 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getH(), bit));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", L")), 0x45 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), r.getL(), bit));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("BIT ") + std::to_string(bit) + std::string(", (HL)")), 0x46 + 0x08 * bit, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->bit(r.getFlags(), m.getByte(r.getHL()), bit));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", A")), 0xc7 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getA(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", B")), 0xc0 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getB(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", C")), 0xc1 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getC(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", D")), 0xc2 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getD(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", E")), 0xc3 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getE(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", H")), 0xc4 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getH(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", L")), 0xc5 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(setBit(r.getL(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("SET ") + std::to_string(bit) + std::string(", (HL)")), 0xc6 + 0x08 * bit, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->m.setByte(r.getHL(), setBit(m.getByte(r.getHL()), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", A")), 0x87 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getA(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", B")), 0x80 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getB(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", C")), 0x81 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getC(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", D")), 0x82 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getD(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", E")), 0x83 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getE(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", H")), 0x84 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getH(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", L")), 0x85 + 0x08 * bit, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setA(clearBit(r.getL(), bit)));
+            m_CBInstructionSet.RegisterInstruction(CPUInstruction((std::string("RES ") + std::to_string(bit) + std::string(", (HL)")), 0x86 + 0x08 * bit, 16, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->m.setByte(r.getHL(), clearBit(m.getByte(r.getHL()), bit)));
         }
 
-        m_InstructionSet.RegisterInstruction(CPUInstruction("JMP nn", 0xc3, 12, 2, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setPC(toWord(a)));
+        m_InstructionSet.RegisterInstruction(CPUInstruction("JMP nn", 0xc3, 12, 2, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.PC = CI_TO16(immediate[0], immediate[1]); }));//(r, m, a)->r.setPC(toWord(a)));
 
         m_InstructionSet.RegisterInstruction(CPUInstruction("JP NZ, nn", 0xc2, 12, 2, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a) -> { if (!r.getFlags().isZ()) r.setPC(toWord(a)); });
         m_InstructionSet.RegisterInstruction(CPUInstruction("JP Z, nn", 0xca, 12, 2, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a) -> { if (r.getFlags().isZ())  r.setPC(toWord(a)); });
         m_InstructionSet.RegisterInstruction(CPUInstruction("JP NC, nn", 0xd2, 12, 2, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a) -> { if (!r.getFlags().isC()) r.setPC(toWord(a)); });
         m_InstructionSet.RegisterInstruction(CPUInstruction("JP C, nn", 0xda, 12, 2, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a) -> { if (r.getFlags().isC())  r.setPC(toWord(a)); });
 
-        m_InstructionSet.RegisterInstruction(CPUInstruction("JP (HL)", 0xe9, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.setPC(r.getHL()));
-        m_InstructionSet.RegisterInstruction(CPUInstruction("JR n", 0x18, 8, 1, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->r.addToPC(a[0]));
+        m_InstructionSet.RegisterInstruction(CPUInstruction("JP (HL)", 0xe9, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.PC = mu.getByte(rf.getHL()); }));//(r, m, a)->r.setPC(r.getHL()));
+        m_InstructionSet.RegisterInstruction(CPUInstruction("JR n", 0x18, 8, 1, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.PC = rf.PC + immediate[0]; }));//(r, m, a)->r.addToPC(a[0]));
 
         m_InstructionSet.RegisterInstruction(CPUInstruction("JR NZ, n", 0x20, 8, 1, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a) -> { if (!r.getFlags().isZ()) r.addToPC(a[0]); });
         m_InstructionSet.RegisterInstruction(CPUInstruction("JR Z, n", 0x28, 8, 1, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a) -> { if (r.getFlags().isZ())  r.addToPC(a[0]); });
@@ -430,7 +431,7 @@ namespace Ciri
         m_InstructionSet.RegisterInstruction(CPUInstruction("RST 30H", 0xf7, 32, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->reset(r, m, 0x30));
         m_InstructionSet.RegisterInstruction(CPUInstruction("RST 38H", 0xff, 32, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->reset(r, m, 0x38));
 
-        m_InstructionSet.RegisterInstruction(CPUInstruction("RET", 0xc9, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a)->ret(r, m));
+        m_InstructionSet.RegisterInstruction(CPUInstruction("RET", 0xc9, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.PC = mu.getByte(rf.SP); rf.SP = rf.SP + 2; }));//(r, m, a)->ret(r, m));
 
         m_InstructionSet.RegisterInstruction(CPUInstruction("RET NZ", 0xc0, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a) -> { if (!r.getFlags().isZ()) ret(r, m); });
         m_InstructionSet.RegisterInstruction(CPUInstruction("RET Z", 0xc8, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a) -> { if (r.getFlags().isZ())  ret(r, m); });
@@ -438,13 +439,6 @@ namespace Ciri
         m_InstructionSet.RegisterInstruction(CPUInstruction("RET C", 0xd8, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a) -> { if (r.getFlags().isC())  ret(r, m); });
 
         m_InstructionSet.RegisterInstruction(CPUInstruction("RETI", 0xd9, 8, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) {}));//(r, m, a) -> {ret(r, m); /* TODO enabled interrupts */ });
-
-		// Practice
-		//m_InstructionSet.RegisterInstruction(CPUInstruction("NOP", 0x00, 4, 0, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate){}));
-		//m_InstructionSet.RegisterInstruction(CPUInstruction("LD SP, nn", 0x31, 12, 2, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate)
-		//{ 
-		//	rf.SP = (uint16_t)immediate[0] | ((uint16_t)immediate[1]) << 8;
-		//}));
 	}
 
 	void CPU::Run()
@@ -481,4 +475,13 @@ namespace Ciri
             m_InstructionSet.ExecuteInstruction(opcode, m_Registers, m_MemoryUnit, args);
         }
 	}
+
+    uint8_t Ciri::addBytes(RegisterFile& rf, uint8_t byte1, uint8_t byte2)
+    {
+        rf.setZFlag((byte1 + byte2) == 0);
+        rf.setNFlag(false);
+        rf.setHFlag((byte1 & 0x0f) + (byte2 & 0x0f) > 0x0f);
+        rf.setCFlag(byte1 + byte2 > 0xff);
+        return byte1 + byte2;
+    }
 }

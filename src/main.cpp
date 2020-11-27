@@ -20,6 +20,7 @@ void CPUTest()
 
 int main()
 {
+	InitLogger();
 	CPUTest();
 	std::cin.get();
 	return 0;

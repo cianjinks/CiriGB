@@ -14,12 +14,12 @@ namespace Ciri {
 	};
 }
 
-#ifdef VX_DEBUG
-#define CI_ERROR(...) ::Ciri::Log::GetCoreLogger()->error(__VA_ARGS__)
-#define CI_WARN(...) ::Ciri::Log::GetCoreLogger()->warn(__VA_ARGS__)
-#define CI_TRACE(...) ::Ciri::Log::GetCoreLogger()->trace(__VA_ARGS__)
-#define CI_CRITICAL(...) ::Ciri::Log::GetCoreLogger()->critical(__VA_ARGS__)
-#define CI_INFO(...) ::Ciri::Log::GetCoreLogger()->info(__VA_ARGS__)
+#ifdef CI_DEBUG
+#define CI_ERROR(...) ::Ciri::Log::GetCiriLogger()->error(__VA_ARGS__)
+#define CI_WARN(...) ::Ciri::Log::GetCiriLogger()->warn(__VA_ARGS__)
+#define CI_TRACE(...) ::Ciri::Log::GetCiriLogger()->trace(__VA_ARGS__)
+#define CI_CRITICAL(...) ::Ciri::Log::GetCiriLogger()->critical(__VA_ARGS__)
+#define CI_INFO(...) ::Ciri::Log::GetCiriLogger()->info(__VA_ARGS__)
 
 #else
 #define CI_ERROR

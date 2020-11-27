@@ -19,5 +19,7 @@ namespace Ciri
 		CPU();
 
 		void Run();
+
+		uint8_t addBytes(uint8_t byte1, uint8_t byte2);
 	};
 }

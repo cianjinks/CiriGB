@@ -19,6 +19,7 @@ namespace Ciri
 	{
 		CI_ASSERT(opcode <= 0xFF && opcode >= 0 && m_Instructions[opcode].func, "Invalid CPU Instruction Opcode Executed: {1:x}", opcode);
 
+		DebugInstruction(m_Instructions[opcode], immediate);
 		m_Instructions[opcode].func(rf, mu, immediate);
 	}
 
@@ -27,5 +28,25 @@ namespace Ciri
 		CI_ASSERT(opcode <= 0xFF && opcode >= 0 && m_Instructions[opcode].func, "Invalid CPU Instruction Opcode Fetched: {1:x}", opcode);
 
 		return m_Instructions[opcode];
+	}
+
+	void InstructionSet::DebugInstruction(CPUInstruction& instruction, uint8_t* immediate)
+	{
+		if (instruction.argsLength == 0)
+		{
+			CI_INFO("{0} | ARGS: null OP: 0x{1:x}", instruction.name, instruction.opcode);
+		}
+		else if (instruction.argsLength == 1)
+		{
+			CI_INFO("{0} | ARGS: 0x{1:x} OP: 0x{2:x}", instruction.name, immediate[0],  instruction.opcode);
+		}
+		else if (instruction.argsLength == 2)
+		{
+			CI_INFO("{0} | ARGS: 0x{1:x}{2:x} OP: 0x{3:x}", instruction.name, immediate[1], immediate[0], instruction.opcode);
+		}
+		else 
+		{
+			CI_INFO("{0} | ARGS: Unknown? OP: 0x{1:x}", instruction.name, instruction.opcode);
+		}
 	}
 }
