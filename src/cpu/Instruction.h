@@ -29,6 +29,6 @@ namespace Ciri
 		void RegisterInstruction(CPUInstruction instruction);
 		void ExecuteInstruction(uint8_t opcode, RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate);
 		CPUInstruction FetchInstruction(uint8_t opcode);
-		void DebugInstruction(CPUInstruction& instruction, uint8_t* immediate);
+		void DebugInstruction(CPUInstruction& instruction, uint8_t* immediate, uint16_t pc);
 	};
 }

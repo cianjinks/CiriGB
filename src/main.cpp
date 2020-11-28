@@ -13,13 +13,13 @@ void CPUTest()
 	Ciri::CPU cpu;
 	while (true)
 	{
+		//std::cin.ignore();
 		cpu.Run();
 	}
 	
 }
 
-int main()
-{
+int main(){
 	InitLogger();
 	CPUTest();
 	std::cin.get();

@@ -19,7 +19,11 @@ namespace Ciri
 	{
 		CI_ASSERT(opcode <= 0xFF && opcode >= 0 && m_Instructions[opcode].func, "Invalid CPU Instruction Opcode Executed: {1:x}", opcode);
 
-		DebugInstruction(m_Instructions[opcode], immediate);
+		if (rf.PC == 0x32)
+		{
+			CI_INFO("Test");
+		}
+		DebugInstruction(m_Instructions[opcode], immediate, rf.PC);
 		m_Instructions[opcode].func(rf, mu, immediate);
 	}
 
@@ -30,23 +34,30 @@ namespace Ciri
 		return m_Instructions[opcode];
 	}
 
-	void InstructionSet::DebugInstruction(CPUInstruction& instruction, uint8_t* immediate)
+	void InstructionSet::DebugInstruction(CPUInstruction& instruction, uint8_t* immediate, uint16_t pc)
 	{
 		if (instruction.argsLength == 0)
 		{
-			CI_INFO("[0x{1:x}] {0} | ARGS: null", instruction.name, instruction.opcode);
+			CI_INFO("0x{2:x} | [0x{1:x}] {0} | ARGS: null", instruction.name, instruction.opcode, pc);
 		}
 		else if (instruction.argsLength == 1)
 		{
-			CI_INFO("[0x{2:x}] {0} | ARGS: 0x{1:x}", instruction.name, immediate[0],  instruction.opcode);
+			CI_INFO("0x{3:x} | [0x{2:x}] {0} | ARGS: 0x{1:2x}", instruction.name, immediate[0],  instruction.opcode, pc);
 		}
 		else if (instruction.argsLength == 2)
 		{
-			CI_INFO("[0x{3:x}] {0} | ARGS: 0x{1:x}{2:x}", instruction.name, immediate[1], immediate[0], instruction.opcode);
+			if (immediate[0] > 0x0F)
+			{
+				CI_INFO("0x{4:x} | [0x{3:x}] {0} | ARGS: 0x{1:x}{2:x}", instruction.name, immediate[1], immediate[0], instruction.opcode, pc);
+			}
+			else
+			{
+				CI_INFO("0x{4:x} | [0x{3:x}] {0} | ARGS: 0x{1:x}0{2:x}", instruction.name, immediate[1], immediate[0], instruction.opcode, pc);
+			}
 		}
 		else 
 		{
-			CI_INFO("[0x{1:x}] {0} | ARGS: Unknown?", instruction.name, instruction.opcode);
+			CI_INFO("0x{2:x} |[0x{1:x}] {0} | ARGS: Unknown?", instruction.name, instruction.opcode, pc);
 		}
 	}
 }
