@@ -34,19 +34,19 @@ namespace Ciri
 	{
 		if (instruction.argsLength == 0)
 		{
-			CI_INFO("{0} | ARGS: null OP: 0x{1:x}", instruction.name, instruction.opcode);
+			CI_INFO("[0x{1:x}] {0} | ARGS: null", instruction.name, instruction.opcode);
 		}
 		else if (instruction.argsLength == 1)
 		{
-			CI_INFO("{0} | ARGS: 0x{1:x} OP: 0x{2:x}", instruction.name, immediate[0],  instruction.opcode);
+			CI_INFO("[0x{2:x}] {0} | ARGS: 0x{1:x}", instruction.name, immediate[0],  instruction.opcode);
 		}
 		else if (instruction.argsLength == 2)
 		{
-			CI_INFO("{0} | ARGS: 0x{1:x}{2:x} OP: 0x{3:x}", instruction.name, immediate[1], immediate[0], instruction.opcode);
+			CI_INFO("[0x{3:x}] {0} | ARGS: 0x{1:x}{2:x}", instruction.name, immediate[1], immediate[0], instruction.opcode);
 		}
 		else 
 		{
-			CI_INFO("{0} | ARGS: Unknown? OP: 0x{1:x}", instruction.name, instruction.opcode);
+			CI_INFO("[0x{1:x}] {0} | ARGS: Unknown?", instruction.name, instruction.opcode);
 		}
 	}
 }
