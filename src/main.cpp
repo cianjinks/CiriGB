@@ -13,7 +13,7 @@ void CPUTest()
 	Ciri::CPU cpu;
 	while (true)
 	{
-		//std::cin.ignore();
+		std::cin.ignore();
 		cpu.Run();
 	}
 	
