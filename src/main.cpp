@@ -1,27 +1,15 @@
 #include "ciripch.h"
 
-#include "Cpu/Cpu.h"
+#include "Application.h"
 
-void InitLogger()
+int main()
 {
 	Ciri::Log::InitLogger();
 	CI_INFO("Initialised Logger");
-}
 
-void CPUTest()
-{
-	Ciri::CPU cpu;
-	while (true)
-	{
-		std::cin.ignore();
-		cpu.Run();
-	}
-	
-}
+	Ciri::Application* app = new Ciri::Application;
+	app->Run();
+	delete app;
 
-int main(){
-	InitLogger();
-	CPUTest();
-	std::cin.get();
 	return 0;
 }
