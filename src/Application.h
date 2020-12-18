@@ -9,7 +9,7 @@ namespace Ciri {
 	{
 	private:
 		GLFWwindow* m_Window;
-		Emulator m_Emulator;
+		Emulator* m_Emulator;
 
 		static float s_WindowWidth;
 		static float s_WindowHeight;

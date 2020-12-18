@@ -43,8 +43,8 @@ namespace Ciri
 		glBindTexture(GL_TEXTURE_2D, m_ColorAttachment);
 		// Note we use 24 bits per pixel which could be much lower
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, m_FrameBufferData.TextureWidth, m_FrameBufferData.TextureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, m_FrameBufferData.ImageData);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachment, 0);
 

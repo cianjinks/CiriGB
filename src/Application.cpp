@@ -35,18 +35,7 @@ namespace Ciri {
 		glfwSwapInterval(1);
 		Ciri::ImGuiHandler::Init(m_Window);
 
-		// Test Framebuffer
-		Ciri::FrameBufferData data;
-		data.Width = (uint32_t)m_Emulator.GetEmulatorWidth();
-		data.Height = (uint32_t)m_Emulator.GetEmulatorHeight();
-		data.TextureWidth = (uint32_t)m_Emulator.GetEmulatorWidth() / 4;
-		data.TextureHeight = (uint32_t)m_Emulator.GetEmulatorHeight() / 4;
-		data.ImageData = new unsigned char[(160 * 144) * 3];
-		for (int i = 0; i < (160 * 144) * 3; i++)
-		{
-			data.ImageData[i] = (unsigned char)0xFF;
-		}
-		Ciri::FrameBuffer fb(data);
+		m_Emulator = new Emulator();
 
 		while (!glfwWindowShouldClose(m_Window)) {
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -54,22 +43,26 @@ namespace Ciri {
 
 			Ciri::ImGuiHandler::NewFrame();
 			//ImGui::ShowDemoWindow();
-			ImGui::SetNextWindowSize(ImVec2(m_Emulator.GetEmulatorWidth(), m_Emulator.GetEmulatorHeight()));
+
+			// Debug Window
+			ImGui::SetNextWindowSize(/**ImVec2(m_Emulator->GetEmulatorWidth(), m_Emulator->GetEmulatorHeight())**/ImVec2(100.0f, 100.0f));
 			ImGui::Begin("Emulator");
 			if (ImGui::Button("Run"))
 			{
-				m_Emulator.m_CPU.Run();
+				m_Emulator->m_CPU.Run();
+				m_Emulator->m_GPU.Update();
 			}
 			ImGui::End();
 
-			// Testing drawing framebuffer to window
+			// Testing GPU draw to window
+			ImGui::SetNextWindowSize(ImVec2(m_Emulator->GetEmulatorWidth(), m_Emulator->GetEmulatorHeight()));
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 			ImGui::Begin("Screen");
 
 			ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 			ImVec2 viewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-			uint64_t textureID = fb.GetFrameBufferColorData();
+			uint64_t textureID = m_Emulator->m_GPU.GetGLTexture();
 			ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ viewportSize.x, viewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 			ImGui::End();
 			ImGui::PopStyleVar();
@@ -82,5 +75,6 @@ namespace Ciri {
 
 		glfwDestroyWindow(m_Window);
 		glfwTerminate();
+		delete m_Emulator;
 	}
 }
