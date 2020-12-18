@@ -10,13 +10,23 @@ namespace Ciri {
 		static float s_EmulatorWidth;
 		static float s_EmulatorHeight;
 
+	private:
+		CPU* m_CPU;
+		GPU* m_GPU;
+
 	public:
-		Emulator() : m_GPU(160, 144) {}
-		CPU m_CPU;
-		GPU m_GPU;
+		RegisterFile m_Registers;
+		MemoryUnit m_MemoryUnit;
+
+	public:
+		Emulator();
+		~Emulator();
+
+		void Run();
 
 	public:
 		float GetEmulatorWidth() { return s_EmulatorWidth; };
 		float GetEmulatorHeight() { return s_EmulatorHeight; };
+		uint64_t GetScreen() { return m_GPU->GetGLTexture(); }
 	};
 }

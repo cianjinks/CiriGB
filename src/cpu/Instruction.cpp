@@ -19,11 +19,7 @@ namespace Ciri
 	{
 		CI_ASSERT(opcode <= 0xFF && opcode >= 0 && m_Instructions[opcode].func, "Invalid CPU Instruction Opcode Executed: {1:x}", opcode);
 
-		if (rf.PC == 0x32)
-		{
-			CI_INFO("Test");
-		}
-		DebugInstruction(m_Instructions[opcode], immediate, rf.PC);
+		//DebugInstruction(m_Instructions[opcode], immediate, rf.PC);
 		m_Instructions[opcode].func(rf, mu, immediate);
 	}
 

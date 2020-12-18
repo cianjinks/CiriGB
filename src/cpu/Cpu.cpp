@@ -3,7 +3,8 @@
 
 namespace Ciri
 {
-	CPU::CPU() 
+	CPU::CPU(RegisterFile& registers, MemoryUnit& memoryunit)
+        : m_Registers(registers), m_MemoryUnit(memoryunit)
 	{
 		// 8-bit Loads
         m_InstructionSet.RegisterInstruction(CPUInstruction("LD B, n", 0x06, 8, 1, [](RegisterFile& rf, MemoryUnit& mu, uint8_t* immediate) { rf.A = immediate[0]; }));//(r, m, a)->r.setB(a[0]));
@@ -445,6 +446,10 @@ namespace Ciri
 	void CPU::Run()
 	{
         CPUInstruction instruction;
+        if (m_Registers.PC >= 0x100)
+        {
+            CI_CRITICAL("TEst");
+        }
 		uint8_t opcode = m_MemoryUnit.getByte((uint32_t)m_Registers.PC++);
         if (opcode == 0xCB)
         {

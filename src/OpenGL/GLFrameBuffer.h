@@ -7,7 +7,7 @@ namespace Ciri
 	{
 		uint32_t Width = 0, Height = 0;
 		uint32_t TextureWidth = 0, TextureHeight = 0;
-		unsigned char* ImageData = nullptr;
+		uint8_t* ImageData = nullptr;
 	};
 
 	class FrameBuffer

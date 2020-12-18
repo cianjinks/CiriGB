@@ -17,5 +17,7 @@ namespace Ciri
 
 		void setByte(uint16_t address, uint8_t byte);
 		uint8_t getByte(uint16_t address);
+
+		uint8_t* getRawData() { return m_Data; }
 	};
 }

@@ -12,11 +12,11 @@ namespace Ciri
 	private:
 		InstructionSet m_InstructionSet;
 		InstructionSet m_CBInstructionSet;
-		RegisterFile m_Registers;
-		MemoryUnit m_MemoryUnit;
+		RegisterFile& m_Registers;
+		MemoryUnit& m_MemoryUnit;
 
 	public:
-		CPU();
+		CPU(RegisterFile& registers, MemoryUnit& memoryunit);
 
 		void Run();
 

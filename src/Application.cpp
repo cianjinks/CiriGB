@@ -45,12 +45,11 @@ namespace Ciri {
 			//ImGui::ShowDemoWindow();
 
 			// Debug Window
-			ImGui::SetNextWindowSize(/**ImVec2(m_Emulator->GetEmulatorWidth(), m_Emulator->GetEmulatorHeight())**/ImVec2(100.0f, 100.0f));
+			ImGui::SetNextWindowSize(/**ImVec2(m_Emulator->GetEmulatorWidth(), m_Emulator->GetEmulatorHeight())**/ImVec2(200.0f, 100.0f));
 			ImGui::Begin("Emulator");
-			if (ImGui::Button("Run"))
+			//if (ImGui::Button("Run"))
 			{
-				m_Emulator->m_CPU.Run();
-				m_Emulator->m_GPU.Update();
+				m_Emulator->Run();
 			}
 			ImGui::End();
 
@@ -62,7 +61,7 @@ namespace Ciri {
 			ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 			ImVec2 viewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-			uint64_t textureID = m_Emulator->m_GPU.GetGLTexture();
+			uint64_t textureID = m_Emulator->GetScreen();
 			ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ viewportSize.x, viewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 			ImGui::End();
 			ImGui::PopStyleVar();
